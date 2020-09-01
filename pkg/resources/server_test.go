@@ -23,6 +23,7 @@ var _ = Describe("Server", func() {
 		Context("valid arguments are passed", func() {
 			var rs *resourceServer
 			rp := mocks.ResourcePool{}
+			allocator := mocks.Allocator{}
 			BeforeEach(func() {
 				fs := &utils.FakeFilesystem{}
 				defer fs.Use()()
@@ -30,17 +31,18 @@ var _ = Describe("Server", func() {
 			})
 			It("should have the properties correctly assigned when plugin watcher enabled", func() {
 				// Create ResourceServer with plugin watch mode enabled
-				obj := NewResourceServer("fakeprefix", "fakesuffix", true, &rp)
+				obj := NewResourceServer("fakeprefix", "fakesuffix", true, &rp, &allocator)
 				rs = obj.(*resourceServer)
 				Expect(rs.resourcePool.GetResourceName()).To(Equal("fakename"))
 				Expect(rs.resourceNamePrefix).To(Equal("fakeprefix"))
 				Expect(rs.endPoint).To(Equal("fakeprefix_fakename.fakesuffix"))
 				Expect(rs.pluginWatch).To(Equal(true))
 				Expect(rs.sockPath).To(Equal(filepath.Join(types.SockDir, "fakeprefix_fakename.fakesuffix")))
+				Expect(rs.allocator).To(Equal(&allocator))
 			})
 			It("should have the properties correctly assigned when plugin watcher disabled", func() {
 				// Create ResourceServer with plugin watch mode disabled
-				obj := NewResourceServer("fakeprefix", "fakesuffix", false, &rp)
+				obj := NewResourceServer("fakeprefix", "fakesuffix", false, &rp, &allocator)
 				rs = obj.(*resourceServer)
 				Expect(rs.resourcePool.GetResourceName()).To(Equal("fakename"))
 				Expect(rs.resourceNamePrefix).To(Equal("fakeprefix"))
@@ -48,6 +50,7 @@ var _ = Describe("Server", func() {
 				Expect(rs.pluginWatch).To(Equal(false))
 				Expect(rs.sockPath).To(Equal(filepath.Join(types.DeprecatedSockDir,
 					"fakeprefix_fakename.fakesuffix")))
+				Expect(rs.allocator).To(Equal(&allocator))
 			})
 		})
 	})
@@ -58,6 +61,7 @@ var _ = Describe("Server", func() {
 			fs := &utils.FakeFilesystem{}
 			defer fs.Use()()
 			rp := mocks.ResourcePool{}
+			allocator := mocks.Allocator{}
 			rp.On("Probe").Return(false)
 			rp.On("GetResourceName").Return("fakename")
 			rp.On("StoreDeviceInfoFile", "fakeprefix").Return(nil)
@@ -67,7 +71,7 @@ var _ = Describe("Server", func() {
 			types.SockDir = fs.RootDir
 			types.DeprecatedSockDir = fs.RootDir
 
-			obj := NewResourceServer("fakeprefix", "fakesuffix", shouldEnablePluginWatch, &rp)
+			obj := NewResourceServer("fakeprefix", "fakesuffix", shouldEnablePluginWatch, &rp, &allocator)
 			rs := obj.(*resourceServer)
 
 			registrationServer := createFakeRegistrationServer(fs.RootDir,
@@ -114,8 +118,9 @@ var _ = Describe("Server", func() {
 				fs := &utils.FakeFilesystem{}
 				defer fs.Use()()
 				rp := mocks.ResourcePool{}
+				allocator := mocks.Allocator{}
 				rp.On("GetResourceName").Return("fake.com")
-				rs := NewResourceServer("fakeprefix", "fakesuffix", true, &rp).(*resourceServer)
+				rs := NewResourceServer("fakeprefix", "fakesuffix", true, &rp, &allocator).(*resourceServer)
 				err = rs.Init()
 			})
 			It("should never fail", func() {
@@ -126,8 +131,9 @@ var _ = Describe("Server", func() {
 	Describe("resource server lifecycle", func() {
 		// integration-like test for the resource server (positive cases)
 		var (
-			fakeConf *types.ResourceConfig
-			fs       *utils.FakeFilesystem
+			fakeConf  *types.ResourceConfig
+			fs        *utils.FakeFilesystem
+			allocator mocks.Allocator
 		)
 		t := GinkgoT()
 		BeforeEach(func() {
@@ -140,6 +146,7 @@ var _ = Describe("Server", func() {
 				Selectors:    &selectors,
 			}
 			fs = &utils.FakeFilesystem{}
+			allocator = mocks.Allocator{}
 		})
 		Context("starting, restarting and stopping the resource server", func() {
 			It("should not fail and messages should be received on the channels", func(done Done) {
@@ -156,7 +163,7 @@ var _ = Describe("Server", func() {
 					On("CleanDeviceInfoFile", "fake").Return(nil)
 
 				// Create ResourceServer with plugin watch mode disabled
-				rs := NewResourceServer("fake", "fake", false, &rp).(*resourceServer)
+				rs := NewResourceServer("fake", "fake", false, &rp, &allocator).(*resourceServer)
 
 				registrationServer := createFakeRegistrationServer(fs.RootDir,
 					"fake_fake.com.fake", false, false)
@@ -197,7 +204,7 @@ var _ = Describe("Server", func() {
 					On("StoreDeviceInfoFile", "fake").Return(nil).
 					On("CleanDeviceInfoFile", "fake").Return(nil)
 				// Create ResourceServer with plugin watch mode enabled
-				rs := NewResourceServer("fake", "fake", true, &rp).(*resourceServer)
+				rs := NewResourceServer("fake", "fake", true, &rp, &allocator).(*resourceServer)
 
 				registrationServer := createFakeRegistrationServer(fs.RootDir,
 					"fake_fake.com.fake", false, true)
@@ -233,7 +240,7 @@ var _ = Describe("Server", func() {
 					On("CleanDeviceInfoFile", "fake").Return(nil)
 
 				// Create ResourceServer with plugin watch mode disabled
-				rs := NewResourceServer("fake", "fake", false, &rp).(*resourceServer)
+				rs := NewResourceServer("fake", "fake", false, &rp, &allocator).(*resourceServer)
 
 				registrationServer := createFakeRegistrationServer(fs.RootDir,
 					"fake_fake.com.fake", false, false)
@@ -263,6 +270,7 @@ var _ = Describe("Server", func() {
 
 	DescribeTable("allocating",
 		func(req *pluginapi.AllocateRequest, expectedRespLength int, shouldFail bool) {
+			allocator := mocks.Allocator{}
 			rp := mocks.ResourcePool{}
 			rp.On("GetResourceName").
 				Return("fake.com").
@@ -275,7 +283,7 @@ var _ = Describe("Server", func() {
 				On("GetMounts", []string{"00:00.01"}).
 				Return([]*pluginapi.Mount{{ContainerPath: "/dev/fake", HostPath: "/dev/fake", ReadOnly: false}})
 
-			rs := NewResourceServer("fake.com", "fake", true, &rp).(*resourceServer)
+			rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
 
 			resp, err := rs.Allocate(context.TODO(), req)
 
@@ -303,6 +311,65 @@ var _ = Describe("Server", func() {
 		),
 		Entry("empty AllocateRequest", &pluginapi.AllocateRequest{}, 0, false),
 	)
+
+	DescribeTable("preferred allocation",
+		func(req *pluginapi.ContainerPreferredAllocationRequest, expectedRespLength int, shouldFail bool) {
+			rp := mocks.ResourcePool{}
+			rp.On("GetDevicePool").
+				Return(map[string]types.PciDevice{
+					"0000:1b:00.1": nil,
+					"0000:bc:00.0": nil,
+					"0000:1c:00.0": nil,
+					"0000:df:01.0": nil,
+					"0000:af:00.1": nil,
+					"0000:af:01.1": nil,
+					"0000:af:01.2": nil,
+				}).
+				On("GetResourceName").Return("fake.com")
+
+			allocator := mocks.Allocator{}
+			allocator.On("Allocate", req, &rp).Return([]string{"0000:1b:00.1", "0000:1c:00.0", "0000:af:01.1", "0000:af:01.2"})
+
+			rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
+
+			resp, err := rs.GetPreferredAllocation(nil, &pluginapi.PreferredAllocationRequest{
+				ContainerRequests: []*pluginapi.ContainerPreferredAllocationRequest{req}})
+
+			Expect(len(resp.GetContainerResponses())).To(Equal(expectedRespLength))
+
+			if shouldFail {
+				Expect(err).To(HaveOccurred())
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+			}
+		},
+		Entry("prefer to allocate 4 deviceID in order",
+			&pluginapi.ContainerPreferredAllocationRequest{
+				AvailableDeviceIDs: []string{
+					"0000:1b:00.1",
+					"0000:bc:00.0",
+					"0000:1c:00.0",
+					"0000:df:01.0",
+					"0000:af:01.1",
+					"0000:af:01.2"},
+				MustIncludeDeviceIDs: []string{},
+				AllocationSize:       int32(4),
+			},
+			1,
+			false,
+		),
+		Entry("allocating deviceID that does not exist",
+			&pluginapi.ContainerPreferredAllocationRequest{
+				AvailableDeviceIDs:   []string{"00:00.02"},
+				MustIncludeDeviceIDs: []string{},
+				AllocationSize:       int32(1),
+			},
+			1,
+			false,
+		),
+		Entry("empty PreferredAllocationRequest", &pluginapi.ContainerPreferredAllocationRequest{}, 1, false),
+	)
+
 	Describe("running PreStartContainer", func() {
 		It("should not fail", func() {
 			rs := &resourceServer{}
@@ -324,11 +391,12 @@ var _ = Describe("Server", func() {
 			It("should fail", func() {
 				fs := &utils.FakeFilesystem{}
 				defer fs.Use()()
+				allocator := mocks.Allocator{}
 				rp := mocks.ResourcePool{}
 				rp.On("GetResourceName").Return("fake.com").
 					On("GetDevices").Return(map[string]*pluginapi.Device{"00:00.01": {ID: "00:00.01", Health: "Healthy"}}).Once()
 
-				rs := NewResourceServer("fake.com", "fake", true, &rp).(*resourceServer)
+				rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
 				rs.sockPath = fs.RootDir
 
 				lwSrv := &fakeListAndWatchServer{
@@ -344,12 +412,13 @@ var _ = Describe("Server", func() {
 			It("should receive not fail", func(done Done) {
 				fs := &utils.FakeFilesystem{}
 				defer fs.Use()()
+				allocator := mocks.Allocator{}
 				rp := mocks.ResourcePool{}
 				rp.On("GetResourceName").Return("fake.com").
 					On("GetDevices").Return(map[string]*pluginapi.Device{"00:00.01": {ID: "00:00.01", Health: "Healthy"}}).Once().
 					On("GetDevices").Return(map[string]*pluginapi.Device{"00:00.02": {ID: "00:00.02", Health: "Healthy"}}).Once()
 
-				rs := NewResourceServer("fake.com", "fake", true, &rp).(*resourceServer)
+				rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
 				rs.sockPath = fs.RootDir
 
 				lwSrv := &fakeListAndWatchServer{
@@ -379,12 +448,13 @@ var _ = Describe("Server", func() {
 			It("should receive not fail", func(done Done) {
 				fs := &utils.FakeFilesystem{}
 				defer fs.Use()()
+				allocator := mocks.Allocator{}
 				rp := mocks.ResourcePool{}
 				rp.On("GetResourceName").Return("fake.com").
 					On("GetDevices").Return(map[string]*pluginapi.Device{"00:00.01": {ID: "00:00.01", Health: "Healthy"}}).Once().
 					On("GetDevices").Return(map[string]*pluginapi.Device{"00:00.02": {ID: "00:00.02", Health: "Healthy"}}).Once()
 
-				rs := NewResourceServer("fake.com", "fake", true, &rp).(*resourceServer)
+				rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
 				rs.sockPath = fs.RootDir
 
 				lwSrv := &fakeListAndWatchServer{

@@ -63,7 +63,7 @@ var _ = Describe("PciNetDevice", func() {
 				defer fs.Use()()
 				utils.SetDefaultMockNetlinkProvider()
 
-				f := factory.NewResourceFactory("fake", "fake", true)
+				f := factory.NewResourceFactory("fake", "fake", true, "")
 				in := newPciDeviceFn("0000:00:00.1")
 				rc := &types.ResourceConfig{}
 
@@ -220,7 +220,7 @@ var _ = Describe("PciNetDevice", func() {
 				},
 			}
 
-			f := factory.NewResourceFactory("fake", "fake", true)
+			f := factory.NewResourceFactory("fake", "fake", true, "")
 			in := newPciDeviceFn("0000:00:00.1")
 			It("should add the vhost-net deviceSpec", func() {
 				defer fs.Use()()
@@ -271,7 +271,7 @@ var _ = Describe("PciNetDevice", func() {
 				defer fs.Use()()
 				utils.SetDefaultMockNetlinkProvider()
 
-				f := factory.NewResourceFactory("fake", "fake", true)
+				f := factory.NewResourceFactory("fake", "fake", true, "")
 				in := newPciDeviceFn("0000:00:00.1")
 				rc := &types.ResourceConfig{}
 

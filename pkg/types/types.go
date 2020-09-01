@@ -179,6 +179,7 @@ type ResourceFactory interface {
 	GetDeviceProvider(DeviceType) DeviceProvider
 	GetDeviceFilter(*ResourceConfig) (interface{}, error)
 	GetNadUtils() NadUtils
+	GetAllocator() Allocator
 }
 
 // ResourcePool represents a generic resource entity
@@ -193,6 +194,7 @@ type ResourcePool interface {
 	GetMounts(deviceIDs []string) []*pluginapi.Mount
 	StoreDeviceInfoFile(resourceNamePrefix string) error
 	CleanDeviceInfoFile(resourceNamePrefix string) error
+	GetDevicePool() map[string]HostDevice // for ListAndWatch
 }
 
 // DeviceProvider provides interface for device discovery
@@ -295,6 +297,16 @@ type DeviceInfoProvider interface {
 	GetDeviceSpecs() []*pluginapi.DeviceSpec
 	GetEnvVal() AdditionalInfo
 	GetMounts() []*pluginapi.Mount
+}
+
+// Allocator is an interface to get preferred device allocation
+type Allocator interface {
+	Allocate(*pluginapi.ContainerPreferredAllocationRequest, ResourcePool) []string
+}
+
+// ConcentrateAllocator extends Allocator interface
+type ConcentrateAllocator interface {
+	Allocator
 }
 
 // DeviceSelector provides an interface for filtering a list of devices

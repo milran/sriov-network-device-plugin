@@ -31,12 +31,12 @@ var _ = Describe("Allocator", func() {
 
 	BeforeEach(func() {
 	})
-	Describe("creating new concentrate allocator", func() {
+	Describe("creating new packed allocator", func() {
 		Context("with valid policy", func() {
 			It("should return valid allocator", func() {
-				ca := resources.NewConcentrateAllocator()
-				expected := &resources.ConcentrateAllocator{}
-				Expect(reflect.TypeOf(ca)).To(Equal(reflect.TypeOf(expected)))
+				pa := resources.NewPackedAllocator()
+				expected := &resources.PackedAllocator{}
+				Expect(reflect.TypeOf(pa)).To(Equal(reflect.TypeOf(expected)))
 			})
 		})
 	})
@@ -61,7 +61,7 @@ var _ = Describe("Allocator", func() {
 	Describe("manipulating device set", func() {
 		Context("by inserting and deleting elements", func() {
 			It("should return no error and valid device set", func() {
-				f = factory.NewResourceFactory("fake", "fake", true, "")
+				f = factory.NewResourceFactory("fake", "fake", true)
 				rc = &types.ResourceConfig{SelectorObj: types.NetDeviceSelectors{}}
 				ds := resources.NewDeviceSet()
 				d1, _ := netdevice.NewPciNetDevice(newPciDeviceFn("0000:00:00.1"), f, rc)
@@ -99,10 +99,10 @@ var _ = Describe("Allocator", func() {
 			})
 		})
 	})
-	DescribeTable("allocating with concentrate allocator",
+	DescribeTable("allocating with packed allocator",
 		func(rqt *pluginapi.ContainerPreferredAllocationRequest, expected []string) {
 			rc = &types.ResourceConfig{SelectorObj: types.NetDeviceSelectors{}}
-			f = factory.NewResourceFactory("fake", "fake", true, "")
+			f = factory.NewResourceFactory("fake", "fake", true)
 			d1, _ := netdevice.NewPciNetDevice(newPciDeviceFn("0000:00:00.1"), f, rc)
 			d2, _ := netdevice.NewPciNetDevice(newPciDeviceFn("0000:00:af.0"), f, rc)
 			d3, _ := netdevice.NewPciNetDevice(newPciDeviceFn("0000:00:1b.2"), f, rc)
@@ -115,8 +115,8 @@ var _ = Describe("Allocator", func() {
 					"0000:00:1b.0": d4,
 				},
 			)
-			ca := resources.NewConcentrateAllocator()
-			sortedKeys := ca.Allocate(rqt, rp)
+			pa := resources.NewPackedAllocator()
+			sortedKeys := pa.Allocate(rqt, rp)
 			Expect(sortedKeys).To(Equal(expected))
 		},
 		Entry("allocating successfully with 3 device IDs",

@@ -102,6 +102,7 @@ type ResourceConfig struct {
 	Selectors       *json.RawMessage          `json:"selectors,omitempty"`
 	AdditionalInfo  map[string]AdditionalInfo `json:"additionalInfo,omitempty"`
 	SelectorObj     interface{}
+	AllocatePolicy  string `json:"allocatePolicy,omitempty"`
 }
 
 // DeviceSelectors contains common device selectors fields
@@ -179,7 +180,7 @@ type ResourceFactory interface {
 	GetDeviceProvider(DeviceType) DeviceProvider
 	GetDeviceFilter(*ResourceConfig) (interface{}, error)
 	GetNadUtils() NadUtils
-	GetAllocator() Allocator
+	GetAllocator(string) Allocator
 }
 
 // ResourcePool represents a generic resource entity
@@ -194,7 +195,8 @@ type ResourcePool interface {
 	GetMounts(deviceIDs []string) []*pluginapi.Mount
 	StoreDeviceInfoFile(resourceNamePrefix string) error
 	CleanDeviceInfoFile(resourceNamePrefix string) error
-	GetDevicePool() map[string]HostDevice // for ListAndWatch
+	GetDevicePool() map[string]HostDevice // for Allocate
+	GetAllocatePolicy() string
 }
 
 // DeviceProvider provides interface for device discovery
@@ -304,8 +306,8 @@ type Allocator interface {
 	Allocate(*pluginapi.ContainerPreferredAllocationRequest, ResourcePool) []string
 }
 
-// ConcentrateAllocator extends Allocator interface
-type ConcentrateAllocator interface {
+// PackedAllocator extends Allocator interface
+type PackedAllocator interface {
 	Allocator
 }
 

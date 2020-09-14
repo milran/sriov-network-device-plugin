@@ -33,20 +33,18 @@ type resourceFactory struct {
 	endPointPrefix string
 	endPointSuffix string
 	pluginWatch    bool
-	allocatePolicy string
 }
 
 var instance *resourceFactory
 
 // NewResourceFactory returns an instance of Resource Server factory
-func NewResourceFactory(prefix, suffix string, pluginWatch bool, allocatePolicy string) types.ResourceFactory {
+func NewResourceFactory(prefix, suffix string, pluginWatch bool) types.ResourceFactory {
 
 	if instance == nil {
 		return &resourceFactory{
 			endPointPrefix: prefix,
 			endPointSuffix: suffix,
 			pluginWatch:    pluginWatch,
-			allocatePolicy: allocatePolicy,
 		}
 	}
 	return instance
@@ -59,16 +57,17 @@ func (rf *resourceFactory) GetResourceServer(rp types.ResourcePool) (types.Resou
 		if prefixOverride := rp.GetResourcePrefix(); prefixOverride != "" {
 			prefix = prefixOverride
 		}
-		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp, rf.GetAllocator()), nil
+		policy := rp.GetAllocatePolicy()
+		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp, rf.GetAllocator(policy)), nil
 	}
 	return nil, fmt.Errorf("factory: unable to get resource pool object")
 }
 
 // GetAllocator returns an instance of Allocator using preferredAllocationPolicy
-func (rf *resourceFactory) GetAllocator() types.Allocator {
-	switch rf.allocatePolicy {
-	case "concentrated":
-		return resources.NewConcentrateAllocator()
+func (rf *resourceFactory) GetAllocator(policy string) types.Allocator {
+	switch policy {
+	case "packed":
+		return resources.NewPackedAllocator()
 	default:
 		return nil
 	}

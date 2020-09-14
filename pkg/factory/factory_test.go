@@ -41,30 +41,30 @@ var _ = Describe("Factory", func() {
 	Describe("getting factory instance", func() {
 		Context("always", func() {
 			It("should return the same instance", func() {
-				f0 := factory.NewResourceFactory("fake", "fake", true, "")
+				f0 := factory.NewResourceFactory("fake", "fake", true)
 				Expect(f0).NotTo(BeNil())
-				f1 := factory.NewResourceFactory("fake", "fake", true, "")
+				f1 := factory.NewResourceFactory("fake", "fake", true)
 				Expect(f1).To(Equal(f0))
 			})
 		})
 	})
 	DescribeTable("getting allocator",
 		func(policy string, expected reflect.Type) {
-			f := factory.NewResourceFactory("fake", "fake", true, policy)
-			a := f.GetAllocator()
+			f := factory.NewResourceFactory("fake", "fake", true)
+			a := f.GetAllocator(policy)
 			if expected != nil {
 				Expect(reflect.TypeOf(a)).To(Equal(expected))
 			} else {
 				Expect(a).To(BeNil())
 			}
 		},
-		Entry("concentrated", "concentrated", reflect.TypeOf(resources.NewConcentrateAllocator())),
+		Entry("packed", "packed", reflect.TypeOf(resources.NewPackedAllocator())),
 		Entry("empty", "", nil),
 		Entry("any other value", "random policy", nil),
 	)
 	DescribeTable("getting info provider",
 		func(name string, expected reflect.Type) {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			p := f.GetDefaultInfoProvider("fakePCIAddr", name)
 			Expect(len(p)).To(Equal(2)) // for all the providers expect netdevice we expect 2 info providers
 			Expect(reflect.TypeOf(p[1])).To(Equal(expected))
@@ -76,7 +76,7 @@ var _ = Describe("Factory", func() {
 	)
 
 	Describe("getting info provider for generic netdevice", func() {
-		f := factory.NewResourceFactory("fake", "fake", true, "")
+		f := factory.NewResourceFactory("fake", "fake", true)
 		p := f.GetDefaultInfoProvider("fakePCIAddr", "netdevice")
 		Expect(len(p)).To(Equal(1)) // for all the providers expect netdevice we expect 2 info providers
 		Expect(reflect.TypeOf(p[0])).To(Equal(reflect.TypeOf(infoprovider.NewGenericInfoProvider("fakePCIAddr"))))
@@ -84,7 +84,7 @@ var _ = Describe("Factory", func() {
 
 	DescribeTable("getting selector",
 		func(selector string, shouldSucceed bool, expected reflect.Type) {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			v := []string{"val1", "val2", "val3"}
 			s, e := f.GetSelector(selector, v)
 
@@ -122,7 +122,7 @@ var _ = Describe("Factory", func() {
 				devs []types.HostDevice
 			)
 			BeforeEach(func() {
-				f := factory.NewResourceFactory("fake", "fake", true, "")
+				f := factory.NewResourceFactory("fake", "fake", true)
 
 				devs = make([]types.HostDevice, 4)
 				vendors := []string{"8086", "8086", "8086", "1234"}
@@ -195,7 +195,7 @@ var _ = Describe("Factory", func() {
 				devs []types.HostDevice
 			)
 			BeforeEach(func() {
-				f := factory.NewResourceFactory("fake", "fake", true, "")
+				f := factory.NewResourceFactory("fake", "fake", true)
 				devs = make([]types.HostDevice, 4)
 				vendors := []string{"8086", "8086", "8086", "8086"}
 				codes := []string{"1111", "1111", "1111", "1111"}
@@ -324,7 +324,7 @@ var _ = Describe("Factory", func() {
 				devs []types.HostDevice
 			)
 			BeforeEach(func() {
-				f := factory.NewResourceFactory("fake", "fake", true, "")
+				f := factory.NewResourceFactory("fake", "fake", true)
 
 				devs = make([]types.HostDevice, 1)
 				vendors := []string{"8086"}
@@ -382,7 +382,7 @@ var _ = Describe("Factory", func() {
 				devs []types.HostDevice
 			)
 			BeforeEach(func() {
-				f := factory.NewResourceFactory("fake", "fake", true, "")
+				f := factory.NewResourceFactory("fake", "fake", true)
 
 				devs = make([]types.HostDevice, 4)
 				vendors := []string{"8086", "8086", "15b3", "15b3"}
@@ -445,7 +445,7 @@ var _ = Describe("Factory", func() {
 	})
 	DescribeTable("getting device provider",
 		func(dt types.DeviceType, shouldSucceed bool) {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			p := f.GetDeviceProvider(dt)
 			if shouldSucceed {
 				Expect(p).NotTo(BeNil())
@@ -470,7 +470,7 @@ var _ = Describe("Factory", func() {
 				Selectors:  &s,
 			}
 
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 
 			_, e := f.GetDeviceFilter(rc)
 			if shouldSucceed {
@@ -489,7 +489,7 @@ var _ = Describe("Factory", func() {
 	)
 	Describe("getting rdma spec", func() {
 		Context("check c rdma spec", func() {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			rs1 := f.GetRdmaSpec(types.NetDeviceType, "0000:00:00.1")
 			rs2 := f.GetRdmaSpec(types.AcceleratorType, "0000:00:00.2")
 			rs3 := f.GetRdmaSpec(types.AuxNetDeviceType, "foo.bar.3")
@@ -510,7 +510,7 @@ var _ = Describe("Factory", func() {
 	})
 	Describe("getting resource server", func() {
 		Context("when resource pool is nil", func() {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			rs, e := f.GetResourceServer(nil)
 			It("should fail", func() {
 				Expect(e).To(HaveOccurred())
@@ -518,10 +518,11 @@ var _ = Describe("Factory", func() {
 			})
 		})
 		Context("when resouce pool uses overriden prefix", func() {
-			f := factory.NewResourceFactory("fake", "fake", true, "")
+			f := factory.NewResourceFactory("fake", "fake", true)
 			rp := mocks.ResourcePool{}
-			rp.On("GetResourcePrefix").Return("overridden").
-				On("GetResourceName").Return("fake")
+			rp.On("GetResourcePrefix").Return("overriden").
+				On("GetResourceName").Return("fake").
+				On("GetAllocatePolicy").Return("")
 			rs, e := f.GetResourceServer(&rp)
 			It("should not fail", func() {
 				Expect(e).NotTo(HaveOccurred())

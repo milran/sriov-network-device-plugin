@@ -332,7 +332,7 @@ var _ = Describe("Server", func() {
 
 			rs := NewResourceServer("fake.com", "fake", true, &rp, &allocator).(*resourceServer)
 
-			resp, err := rs.GetPreferredAllocation(nil, &pluginapi.PreferredAllocationRequest{
+			resp, err := rs.GetPreferredAllocation(context.TODO(), &pluginapi.PreferredAllocationRequest{
 				ContainerRequests: []*pluginapi.ContainerPreferredAllocationRequest{req}})
 
 			Expect(len(resp.GetContainerResponses())).To(Equal(expectedRespLength))

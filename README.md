@@ -51,6 +51,7 @@ which are available on a Kubernetes host
 - Supports devices with both Kernel and userspace (UIO and VFIO) drivers
 - Allows resource grouping using "Selector"
 - User configurable resourceName
+- User configurable policy for preferred device allocation
 - Detects Kubelet restarts and auto-re-register
 - Detects Link status (for Linux network devices) and updates associated VFs health accordingly
 - Extensible to support new device types with minimal effort if not already supported
@@ -189,6 +190,7 @@ This plugin creates device plugin endpoints based on the configurations given in
         {
             "resourceName": "intel_sriov_dpdk",
             "resourcePrefix": "intel.com",
+            "allocatePolicy": "packed",
             "selectors": {
                 "vendors": ["8086"],
                 "devices": ["154c", "10ed", "1889"],
@@ -200,6 +202,7 @@ This plugin creates device plugin endpoints based on the configurations given in
         {
             "resourceName": "mlnx_sriov_rdma",
             "resourcePrefix": "mellanox.com",
+            "allocatePolicy": "packed",
             "selectors": {
                 "vendors": ["15b3"],
                 "devices": ["1018"],
@@ -261,14 +264,15 @@ This plugin creates device plugin endpoints based on the configurations given in
 
 `"resourceList"` should contain a list of config objects. Each config object may consist of following fields:
 
-|       Field       | Required |                                                              Description                                                               |                     Type/Defaults                     |                         Example/Accepted values                        |
-|-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|------------------------------------------------------------------------|
-| "resourceName"    | Y        | Endpoint resource name. Should not contain special characters including hyphens and must be unique in the scope of the resource prefix | string                                                | "sriov_net_A"                                                          |
-| "resourcePrefix"  | N        | Endpoint resource prefix name override. Should not contain special characters                                                          | string Default : "intel.com"                          | "yourcompany.com"                                                      |
-| "deviceType"      | N        | Device Type for a resource pool.                                                                                                       | string value of supported types. Default: "netDevice" | Currently supported values: "accelerator", "netDevice", "auxNetDevice" |
-| "excludeTopology" | N        | Exclude advertising of device's NUMA topology                                                                                          | bool Default: "false"                                 | "excludeTopology": true                                                |
-| "selectors"       | N        | A map of device selectors. The "deviceType" value determines the "selectors" options.                                                  | json object as string Default: null                   | Example: "selectors": {"vendors": ["8086"],"devices": ["154c"]}        |
-| "additionalInfo" | N | A map of map to add additional information to the pod via environment variables to devices                                             | json object as string Default: null  | Example: "additionalInfo": {"*": {"token": "3e49019f-412f-4f02-824e-4cd195944205"}} |
+| Field             | Required | Description                                                                                                                                      | Type/Defaults                                          | Example/Accepted values                                                             |
+|-------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|-------------------------------------------------------------------------------------|
+| "resourceName"    | Y        | Endpoint resource name. Should not contain special characters including hyphens and must be unique in the scope of the resource prefix           | string                                                 | "sriov_net_A"                                                                       |
+| "resourcePrefix"  | N        | Endpoint resource prefix name override. Should not contain special characters                                                                    | string Default : "intel.com"                           | "yourcompany.com"                                                                   |
+| "deviceType"      | N        | Device Type for a resource pool.                                                                                                                 | string value of supported types. Default: "netDevice"  | Currently supported values: "accelerator", "netDevice", "auxNetDevice"              |
+| "excludeTopology" | N        | Exclude advertising of device's NUMA topology                                                                                                    | bool Default: "false"                                  | "excludeTopology": true                                                             |
+| "selectors"       | N        | A map of device selectors. The "deviceType" value determines the "selectors" options.                                                            | json object as string Default: null                    | Example: "selectors": {"vendors": ["8086"],"devices": ["154c"]}                     |
+| "additionalInfo"  | N | A map of map to add additional information to the pod via environment variables to devices                                                       | json object as string Default: null                    | Example: "additionalInfo": {"*": {"token": "3e49019f-412f-4f02-824e-4cd195944205"}} |
+| "allocatePolicy"  | N        | Preferred device allocation policy for a resource pool. The "allocatePolicy" value determines which device in a resource pool is allocated first | string value of supported allocate policy. Default: "" | Example: "allocatePolicy": "packed"                                                 |
 
 Note: "resourceName" must be unique only in the scope of a given prefix, including the one specified globally in the CLI params, e.g. "example.com/10G", "acme.com/10G" and "acme.com/40G" are perfectly valid names.
 

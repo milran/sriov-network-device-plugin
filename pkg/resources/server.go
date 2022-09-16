@@ -117,7 +117,8 @@ func (rs *resourceServer) NotifyRegistrationStatus(ctx context.Context,
 	return &registerapi.RegistrationStatusResponse{}, nil
 }
 
-func (rs *resourceServer) GetPreferredAllocation(ctx context.Context, rqt *pluginapi.PreferredAllocationRequest) (*pluginapi.PreferredAllocationResponse, error) {
+func (rs *resourceServer) GetPreferredAllocation(ctx context.Context,
+	rqt *pluginapi.PreferredAllocationRequest) (*pluginapi.PreferredAllocationResponse, error) {
 	glog.Infof("GetPreferredAllocation called with %+v", rqt)
 	resp := new(pluginapi.PreferredAllocationResponse)
 	for _, container := range rqt.ContainerRequests {

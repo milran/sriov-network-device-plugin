@@ -517,10 +517,10 @@ var _ = Describe("Factory", func() {
 				Expect(rs).To(BeNil())
 			})
 		})
-		Context("when resouce pool uses overriden prefix", func() {
+		Context("when resource pool uses overridden prefix", func() {
 			f := factory.NewResourceFactory("fake", "fake", true)
 			rp := mocks.ResourcePool{}
-			rp.On("GetResourcePrefix").Return("overriden").
+			rp.On("GetResourcePrefix").Return("overridden").
 				On("GetResourceName").Return("fake").
 				On("GetAllocatePolicy").Return("")
 			rs, e := f.GetResourceServer(&rp)

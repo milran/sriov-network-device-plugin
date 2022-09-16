@@ -39,7 +39,6 @@ var instance *resourceFactory
 
 // NewResourceFactory returns an instance of Resource Server factory
 func NewResourceFactory(prefix, suffix string, pluginWatch bool) types.ResourceFactory {
-
 	if instance == nil {
 		return &resourceFactory{
 			endPointPrefix: prefix,

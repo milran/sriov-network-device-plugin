@@ -57,18 +57,24 @@ func (rf *resourceFactory) GetResourceServer(rp types.ResourcePool) (types.Resou
 			prefix = prefixOverride
 		}
 		policy := rp.GetAllocatePolicy()
-		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp, rf.GetAllocator(policy)), nil
+		allocator, err := rf.GetAllocator(policy)
+		if err != nil {
+			return nil, err
+		}
+		return resources.NewResourceServer(prefix, rf.endPointSuffix, rf.pluginWatch, rp, allocator), nil
 	}
 	return nil, fmt.Errorf("factory: unable to get resource pool object")
 }
 
 // GetAllocator returns an instance of Allocator using preferredAllocationPolicy
-func (rf *resourceFactory) GetAllocator(policy string) types.Allocator {
+func (rf *resourceFactory) GetAllocator(policy string) (types.Allocator, error) {
 	switch policy {
+	case "":
+		return nil, nil
 	case "packed":
-		return resources.NewPackedAllocator()
+		return resources.NewPackedAllocator(), nil
 	default:
-		return nil
+		return nil, fmt.Errorf("GetSelector(): invalid policy %s", policy)
 	}
 }
 

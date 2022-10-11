@@ -35,18 +35,18 @@ var _ = Describe("Allocator", func() {
 	Describe("creating new packed allocator", func() {
 		Context("with valid policy", func() {
 			It("should return valid allocator", func() {
-				pa := resources.NewPackedAllocator()
+				packedAllocator := resources.NewPackedAllocator()
 				expected := &resources.PackedAllocator{}
-				Expect(reflect.TypeOf(pa)).To(Equal(reflect.TypeOf(expected)))
+				Expect(reflect.TypeOf(packedAllocator)).To(Equal(reflect.TypeOf(expected)))
 			})
 		})
 	})
 	Describe("creating new allocator", func() {
 		Context("with default policy", func() {
 			It("should return valid allocator", func() {
-				a := resources.NewAllocator()
+				allocator := resources.NewAllocator()
 				expected := &resources.Allocator{}
-				Expect(reflect.TypeOf(a)).To(Equal(reflect.TypeOf(expected)))
+				Expect(reflect.TypeOf(allocator)).To(Equal(reflect.TypeOf(expected)))
 			})
 		})
 	})

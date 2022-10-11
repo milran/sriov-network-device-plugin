@@ -51,19 +51,19 @@ var _ = Describe("Factory", func() {
 	DescribeTable("getting allocator",
 		func(policy string, shouldSucceed bool, expected reflect.Type) {
 			f := factory.NewResourceFactory("fake", "fake", true)
-			a, e := f.GetAllocator(policy)
+			allocator, error := f.GetAllocator(policy)
 
 			if shouldSucceed {
-				Expect(e).NotTo(HaveOccurred())
+				Expect(error).NotTo(HaveOccurred())
 			} else {
-				Expect(a).To(BeNil())
+				Expect(allocator).To(BeNil())
 			}
 
 			// if statement below because gomega refuses to do "nil == nil" assertions
 			if expected != nil {
-				Expect(reflect.TypeOf(a)).To(Equal(expected))
+				Expect(reflect.TypeOf(allocator)).To(Equal(expected))
 			} else {
-				Expect(reflect.TypeOf(a)).To(BeNil())
+				Expect(reflect.TypeOf(allocator)).To(BeNil())
 			}
 		},
 		Entry("packed", "packed", true, reflect.TypeOf(resources.NewPackedAllocator())),

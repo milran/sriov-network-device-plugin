@@ -74,7 +74,7 @@ func (rf *resourceFactory) GetAllocator(policy string) (types.Allocator, error) 
 	case "packed":
 		return resources.NewPackedAllocator(), nil
 	default:
-		return nil, fmt.Errorf("GetSelector(): invalid policy %s", policy)
+		return nil, fmt.Errorf("GetAllocator(): invalid policy %s", policy)
 	}
 }
 

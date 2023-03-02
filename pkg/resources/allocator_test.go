@@ -1,9 +1,11 @@
 package resources_test
 
 import (
-	"github.com/jaypipes/pcidb"
-	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/netdevice"
 	"reflect"
+
+	"github.com/jaypipes/pcidb"
+
+	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/netdevice"
 
 	"github.com/jaypipes/ghw"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"

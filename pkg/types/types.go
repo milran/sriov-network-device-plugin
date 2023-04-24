@@ -306,11 +306,6 @@ type Allocator interface {
 	Allocate(*pluginapi.ContainerPreferredAllocationRequest, ResourcePool) []string
 }
 
-// PackedAllocator extends Allocator interface
-type PackedAllocator interface {
-	Allocator
-}
-
 // DeviceSelector provides an interface for filtering a list of devices
 type DeviceSelector interface {
 	Filter([]HostDevice) []HostDevice
@@ -337,5 +332,6 @@ type NadUtils interface {
 type VdpaDevice interface {
 	GetPath() string
 	GetParent() string
+
 	GetType() VdpaType
 }

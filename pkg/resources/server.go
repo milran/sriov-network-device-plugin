@@ -202,7 +202,7 @@ func (rs *resourceServer) PreStartContainer(ctx context.Context,
 func (rs *resourceServer) GetDevicePluginOptions(ctx context.Context, empty *pluginapi.Empty) (*pluginapi.DevicePluginOptions, error) {
 	return &pluginapi.DevicePluginOptions{
 		PreStartRequired:                false,
-		GetPreferredAllocationAvailable: (rs.allocator != nil),
+		GetPreferredAllocationAvailable: rs.allocator != nil,
 	}, nil
 }
 

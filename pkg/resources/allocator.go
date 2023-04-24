@@ -30,18 +30,9 @@ type DeviceSet map[string]types.HostDevice
 type PackedAllocator struct {
 }
 
-// DefaultAllocator implements the Allocator interface
-type DefaultAllocator struct {
-}
-
 // NewPackedAllocator create instance of PackedAllocator
 func NewPackedAllocator() *PackedAllocator {
 	return &PackedAllocator{}
-}
-
-// NewAllocator create instance of Allocator
-func NewAllocator() types.Allocator {
-	return &DefaultAllocator{}
 }
 
 // NewDeviceSet is to create an empty DeviceSet
@@ -115,9 +106,4 @@ func (pa *PackedAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationR
 		preferredDevices = append(preferredDevices, sortedAvailableSet[:int(size)-len(preferredDevices)]...)
 	}
 	return preferredDevices
-}
-
-// Allocate return the preferred allocation
-func (a *DefaultAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationRequest, rp types.ResourcePool) []string {
-	return make([]string, 0)
 }

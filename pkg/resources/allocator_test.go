@@ -43,15 +43,6 @@ var _ = Describe("Allocator", func() {
 			})
 		})
 	})
-	Describe("creating new allocator", func() {
-		Context("with default policy", func() {
-			It("should return valid allocator", func() {
-				allocator := resources.NewAllocator()
-				expected := &resources.Allocator{}
-				Expect(reflect.TypeOf(allocator)).To(Equal(reflect.TypeOf(expected)))
-			})
-		})
-	})
 	Describe("creating new device set", func() {
 		Context("with no element", func() {
 			It("should return valid device set", func() {

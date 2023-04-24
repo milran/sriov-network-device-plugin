@@ -34,7 +34,7 @@ type DefaultAllocator struct {
 }
 
 // NewPackedAllocator create instance of PackedAllocator
-func NewPackedAllocator() types.Allocator {
+func NewPackedAllocator() *PackedAllocator {
 	return &PackedAllocator{}
 }
 

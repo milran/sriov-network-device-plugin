@@ -50,19 +50,19 @@ func NewDeviceSet() DeviceSet {
 }
 
 // Insert is to add a HostDevice in DeviceSet
-func (ds DeviceSet) Insert(pciAddr string, device types.HostDevice) {
-	ds[pciAddr] = device
+func (ds *DeviceSet) Insert(pciAddr string, device types.HostDevice) {
+	(*ds)[pciAddr] = device
 }
 
 // Delete is to delete a HostDevice in DeviceSet
-func (ds DeviceSet) Delete(pciAddr string) {
-	delete(ds, pciAddr)
+func (ds *DeviceSet) Delete(pciAddr string) {
+	delete(*ds, pciAddr)
 }
 
 // Sort is to sort the DeviceSet and return the sorted keys
-func (ds DeviceSet) Sort() []string {
-	keys := make([]string, 0, len(ds))
-	for k := range ds {
+func (ds *DeviceSet) Sort() []string {
+	keys := make([]string, 0, len(*ds))
+	for k := range *ds {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

@@ -15,6 +15,7 @@
 package resources
 
 import (
+	"github.com/golang/glog"
 	"sort"
 
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
@@ -73,8 +74,19 @@ func (ds *DeviceSet) Sort() []string {
 func (pa *PackedAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationRequest, rp types.ResourcePool) []string {
 	size := rqt.AllocationSize
 	preferredDevices := make([]string, 0)
-	if size <= 0 || len(rqt.AvailableDeviceIDs) < int(size) || len(rqt.MustIncludeDeviceIDs) > int(size) {
-		return preferredDevices
+
+	if size <= 0 {
+		glog.Warningf("Allocator(): requested number of devices are negative. requested: %d", size)
+		return []string{}
+	}
+
+	if len(rqt.AvailableDeviceIDs) < int(size) {
+		glog.Warningf("Allocator(): not enough number of devices were available. available: %d, requested: %d", len(rqt.AvailableDeviceIDs), size)
+		return []string{}
+	}
+
+	if len(rqt.MustIncludeDeviceIDs) > int(size) {
+		glog.Warningf("Allocator(): allocated number of devices exceeded the number of requested devices. allocated: %d, requested: %d", len(rqt.MustIncludeDeviceIDs), size)
 	}
 
 	availableSet := NewDeviceSet()
@@ -83,7 +95,8 @@ func (pa *PackedAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationR
 		if ok {
 			availableSet.Insert(available, dev)
 		} else {
-			return preferredDevices
+			glog.Warningf("Allocator(): not available device id was specified: %s", available)
+			return []string{}
 		}
 	}
 	for _, required := range rqt.MustIncludeDeviceIDs {
@@ -91,7 +104,8 @@ func (pa *PackedAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationR
 		if ok {
 			availableSet.Delete(required)
 		} else {
-			return preferredDevices
+			glog.Warningf("Allocator(): not available device was included: %s", required)
+			return []string{}
 		}
 	}
 	sortedAvailableSet := availableSet.Sort()

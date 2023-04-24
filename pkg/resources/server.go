@@ -121,9 +121,9 @@ func (rs *resourceServer) GetPreferredAllocation(ctx context.Context,
 	rqt *pluginapi.PreferredAllocationRequest) (*pluginapi.PreferredAllocationResponse, error) {
 	glog.Infof("GetPreferredAllocation called with %+v", rqt)
 	resp := new(pluginapi.PreferredAllocationResponse)
-	for _, container := range rqt.ContainerRequests {
+	for _, containerReq := range rqt.ContainerRequests {
 		containerResp := new(pluginapi.ContainerPreferredAllocationResponse)
-		containerResp.DeviceIDs = rs.allocator.Allocate(container, rs.resourcePool)
+		containerResp.DeviceIDs = rs.allocator.Allocate(containerReq, rs.resourcePool)
 		resp.ContainerResponses = append(resp.ContainerResponses, containerResp)
 	}
 	glog.Infof("PreferredAllocationResponse send: %+v", resp)

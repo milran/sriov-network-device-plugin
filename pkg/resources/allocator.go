@@ -15,8 +15,9 @@
 package resources
 
 import (
-	"github.com/golang/glog"
 	"sort"
+
+	"github.com/golang/glog"
 
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 
@@ -77,7 +78,10 @@ func (pa *PackedAllocator) Allocate(rqt *pluginapi.ContainerPreferredAllocationR
 	}
 
 	if len(rqt.MustIncludeDeviceIDs) > int(size) {
-		glog.Warningf("Allocator(): allocated number of devices exceeded the number of requested devices. allocated: %d, requested: %d", len(rqt.MustIncludeDeviceIDs), size)
+		glog.Warningf(
+			"Allocator(): allocated number of devices exceeded the number of requested devices. allocated: %d, requested: %d",
+			len(rqt.MustIncludeDeviceIDs),
+			size)
 	}
 
 	availableSet := NewDeviceSet()
